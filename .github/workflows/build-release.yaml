@@ -17,13 +17,12 @@ jobs:
         exclude:
           - os: windows-latest
             arch: arm64
-
+    steps:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
         go-version: ${{ matrix.go-version }}
-  
-    steps:
+    
     - name: Checkout code
       uses: actions/checkout@v2
 

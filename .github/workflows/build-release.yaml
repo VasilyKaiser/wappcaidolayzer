@@ -39,7 +39,7 @@ jobs:
         name: wappcaidolayzer-${{ matrix.os }}-${{ matrix.arch }}
         path: wappcaidolayzer-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows-latest' && '.exe' || '' }}
     - name: List build directory contents
-      run: ls -la
+      run: ls
 
 
   release:

@@ -37,9 +37,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: wappcaidolayzer-${{ matrix.os }}-${{ matrix.arch }}
-        path: wappcaidolayzer-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows-latest' && '.exe' || '' }}
-    - name: List build directory contents
-      run: ls
+        path: wappcaidolayzer-${{ matrix.os }}-${{ matrix.arch }}
 
 
   release:

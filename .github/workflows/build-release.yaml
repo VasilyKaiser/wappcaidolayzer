@@ -1,0 +1,151 @@
+name: Build and Release WappCaidoLayzer Project
+
+on:
+  push:
+    tags:
+      - 'v*.*'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go-version: [1.22.x]
+        arch: [amd64, arm64]
+        exclude:
+          - os: windows-latest
+            arch: arm64
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+  
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up working directory
+      run: cd wappcaidolayzer
+
+    - name: Build
+      env:
+        GOARCH: ${{ matrix.arch }}
+      run: |
+        go version
+        go build -o wappcaidolayzer-${{ matrix.os }}-${{ matrix.arch }} .
+
+    - name: Archive build artifacts
+      if: success()
+      uses: actions/upload-artifact@v3
+      with:
+        name: wappcaidolayzer-${{ matrix.os }}-${{ matrix.arch }}
+        path: |
+          wappcaidolayzer-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows-latest' && '.exe' || '' }}
+
+  release:
+    name: Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set Release Variables
+      id: vars
+      run: |
+        echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        echo "RELEASE_NAME=Release ${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+    - name: Download build artifacts (Linux AMD64)
+      uses: actions/download-artifact@v3
+      with:
+        name: wappcaidolayzer-ubuntu-latest-amd64
+        path: ./artifacts/ubuntu/amd64
+
+    - name: Download build artifacts (Linux ARM64)
+      uses: actions/download-artifact@v3
+      with:
+        name: wappcaidolayzer-ubuntu-latest-arm64
+        path: ./artifacts/ubuntu/arm64
+
+    - name: Download build artifacts (MacOS AMD64)
+      uses: actions/download-artifact@v3
+      with:
+        name: wappcaidolayzer-macos-latest-amd64
+        path: ./artifacts/macos/amd64
+
+    - name: Download build artifacts (MacOS ARM64)
+      uses: actions/download-artifact@v3
+      with:
+        name: wappcaidolayzer-macos-latest-arm64
+        path: ./artifacts/macos/arm64
+
+    - name: Download build artifacts (Windows)
+      uses: actions/download-artifact@v3
+      with:
+        name: wappcaidolayzer-windows-latest-amd64
+        path: ./artifacts/windows/amd64
+
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ env.RELEASE_TAG }}
+        release_name: ${{ env.RELEASE_NAME }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset (Linux AMD64)
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/ubuntu/amd64/wappcaidolayzer-ubuntu-latest-amd64
+        asset_name: wappcaidolayzer-linux-amd64
+        asset_content_type: application/octet-stream
+
+    - name: Upload Release Asset (Linux ARM64)
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/ubuntu/arm64/wappcaidolayzer-ubuntu-latest-arm64
+        asset_name: wappcaidolayzer-linux-arm64
+        asset_content_type: application/octet-stream
+
+    - name: Upload Release Asset (MacOS AMD64)
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/macos/amd64/wappcaidolayzer-macos-latest-amd64
+        asset_name: wappcaidolayzer-macos-amd64
+        asset_content_type: application/octet-stream
+
+    - name: Upload Release Asset (MacOS ARM64)
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/macos/arm64/wappcaidolayzer-macos-latest-arm64
+        asset_name: wappcaidolayzer-macos-arm64
+        asset_content_type: application/octet-stream
+
+    - name: Upload Release Asset (Windows)
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./artifacts/windows/amd64/wappcaidolayzer-windows-latest-amd64.exe
+        asset_name: wappcaidolayzer-windows.exe
+        asset_content_type: application/octet-stream

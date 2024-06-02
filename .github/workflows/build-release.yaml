@@ -26,9 +26,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up working directory
-      run: cd wappcaidolayzer
-
     - name: Build
       env:
         GOARCH: ${{ matrix.arch }}

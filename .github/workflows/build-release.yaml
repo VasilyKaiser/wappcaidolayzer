@@ -19,27 +19,26 @@ jobs:
             arch: arm64
     steps:
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ matrix.go-version }}
     
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Build
       env:
         GOARCH: ${{ matrix.arch }}
       run: |
         go version
-        go build -o wappcaidolayzer-${{ matrix.os }}-${{ matrix.arch }} .
+        go build -o wappcaidolayzer-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows-latest' && '.exe' || '' }} .
 
     - name: Archive build artifacts
       if: success()
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: wappcaidolayzer-${{ matrix.os }}-${{ matrix.arch }}
-        path: |
-          wappcaidolayzer-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows-latest' && '.exe' || '' }}
+        path: wappcaidolayzer/wappcaidolayzer-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows-latest' && '.exe' || '' }}
 
   release:
     name: Release
@@ -47,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Set Release Variables
       id: vars
@@ -56,31 +55,31 @@ jobs:
         echo "RELEASE_NAME=Release ${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
 
     - name: Download build artifacts (Linux AMD64)
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: wappcaidolayzer-ubuntu-latest-amd64
         path: ./artifacts/ubuntu/amd64
 
     - name: Download build artifacts (Linux ARM64)
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: wappcaidolayzer-ubuntu-latest-arm64
         path: ./artifacts/ubuntu/arm64
 
     - name: Download build artifacts (MacOS AMD64)
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: wappcaidolayzer-macos-latest-amd64
         path: ./artifacts/macos/amd64
 
     - name: Download build artifacts (MacOS ARM64)
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: wappcaidolayzer-macos-latest-arm64
         path: ./artifacts/macos/arm64
 
     - name: Download build artifacts (Windows)
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: wappcaidolayzer-windows-latest-amd64
         path: ./artifacts/windows/amd64

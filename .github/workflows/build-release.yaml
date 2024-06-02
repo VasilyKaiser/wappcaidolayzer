@@ -31,8 +31,7 @@ jobs:
         GOARCH: ${{ matrix.arch }}
       run: |
         go version
-        go build -o wappcaidolayzer-${{ matrix.os }}-${{ matrix.arch }}${{ matrix.os == 'windows-latest' && '.exe' || '' }} .
-
+        go build -o wappcaidolayzer-${{ matrix.os }}-${{ matrix.arch }} .
     - name: Archive build artifacts
       if: success()
       uses: actions/upload-artifact@v4
